@@ -2,6 +2,16 @@
   (:require [clojure.test :refer :all]
             [ops-linkset-testing.core :refer :all]))
 
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))
+(def MAPPINGSET "http://openphacts.cs.man.ac.uk:9095/QueryExpander/mappingSet/1")
+
+(deftest mappingset
+  (testing "url-to-json"
+    (let [set1 (url-to-json MAPPINGSET)]
+      (println set1)
+      (is (= 1 (get-in set1 [:MappingSetInfo :id])))))
+  (testing "mapping-set-info"
+      (is (= 1 (:id (mapping-set-info MAPPINGSET)))))
+
+  (testing "mapping-set")
+    (is (> 100 (mapping-set MAPPINGSET)))
+)
