@@ -1,7 +1,11 @@
 (ns ops-linkset-testing.core
+  (:import org.apache.jena.riot RDFDataMgr)
+  (:import org.apache.jena.riot.system StreamRDF)
   (:require
     [clj-http.client :as client]
-    [cheshire.core :as json])
+    [clojure.core.async :as async :refer :all]
+    ;[cheshire.core :as json]
+    )
   (:gen-class))
 
 (defn foo
@@ -17,12 +21,30 @@
 (defn mapping-set-info [url]
   (:MappingSetInfo (url-to-json url)))
 
+(defn has-predicate? [predicate triple]
+  (.hasURI predicate (.getPredicate triple)))
+
+(defn channel-rdfstream [channel]
+  (proxy StreamRDF
+    (base [base])
+    (finish [])
+    (prefix [prefix iri])
+    (quad [quad]
+      (>!! channel qued))
+    (start [])
+    (triple [triple]
+      (>!! channel triple))
+  ))
+
 (defn linkset [url predicate]
   (println url)
   (println predicate)
-  ;; TODO: Do for real
-  [ "http://example.com/"]
-  )
+
+  (let [transducer (filter (partial has-predicate? predicate))
+        triples (chan 10 transducer)]
+    (thread (RDFDataMgr/parse url (channel-rdfstream triples)))
+    triples)
+    )
 
 (defn mapping-set [url]
   (let [mapset (mapping-set-info url)]

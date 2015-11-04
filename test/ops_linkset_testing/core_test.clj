@@ -12,6 +12,6 @@
   (testing "mapping-set-info"
       (is (= 1 (:id (mapping-set-info MAPPINGSET)))))
 
-  (testing "mapping-set")
-    (is (> 100 (mapping-set MAPPINGSET)))
+  (testing "mapping-set"
+    (is (< 100 (count (mapping-set MAPPINGSET)))))
 )
