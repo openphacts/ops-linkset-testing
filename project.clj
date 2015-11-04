@@ -4,5 +4,9 @@
   :license {:name "Apache License, version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"}
   :dependencies [[org.clojure/clojure "1.7.0"]
+                ]
+  :main ^:skip-aot ops-linkset-testing.core
+  :target-path "target/%s"
+  :profiles {:uberjar {:aot :all}}
 
-])
+)

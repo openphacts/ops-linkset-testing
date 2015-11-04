@@ -12,4 +12,5 @@ linksets in [Open PHACTS](http://www.openphacts.org/).
 Copyright © 2015 University of Manchester
 Copyright © 2015 Open PHACTS Foundation
 
-Distributed under the [Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+Distributed under the
+[Apache License, version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
