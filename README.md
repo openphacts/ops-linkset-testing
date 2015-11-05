@@ -5,7 +5,7 @@ linksets in [Open PHACTS](http://www.openphacts.org/).
 
 ## Usage
 
-    lein run
+    lein run http://openphacts.cs.man.ac.uk:9095/QueryExpander/ https://beta.openphacts.org/1.5/"
 
 ## License
 

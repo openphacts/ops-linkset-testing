@@ -1,5 +1,8 @@
 (ns ops-linkset-testing.core-test
   (:require [clojure.test :refer :all]
+            [ops-linkset-testing.ims :refer :all]
+            [ops-linkset-testing.rdf :refer :all]
+            [ops-linkset-testing.utils :refer :all]
             [ops-linkset-testing.core :refer :all]))
 
 (def IMS "http://openphacts.cs.man.ac.uk:9095/QueryExpander/")
@@ -17,8 +20,8 @@
   (testing "mapping-set-info"
       (is (= 1 (:id (mapping-set-info MAPPINGSET)))))
 
-  (testing "mapping-set"
-    (let [set1 (mapping-set MAPPINGSET)]
+  (testing "sample-mapping-set"
+    (let [set1 (sample-mapping-set MAPPINGSET)]
       (is (< 100 (count set1)))
       (is (< (count set1) 2000))
       (println (first set1)))))
