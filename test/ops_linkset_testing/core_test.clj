@@ -14,5 +14,7 @@
       (is (= 1 (:id (mapping-set-info MAPPINGSET)))))
 
   (testing "mapping-set"
-    (is (< 100 (count (chan-seq!! (mapping-set MAPPINGSET))))))
-)
+    (let [set1 (mapping-set MAPPINGSET)]
+      (is (< 100 (count set1)))
+      (is (< 2000 (count set1)))
+      (println (first set1)))))

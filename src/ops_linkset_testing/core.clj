@@ -18,7 +18,7 @@
   (:MappingSetInfo (url-to-json url)))
 
 (defn has-predicate? [predicate ^Triple triple]
-  (.hasURI predicate (.getPredicate triple)))
+  (.hasURI (.getPredicate triple) predicate))
 
 (defn channel-rdfstream [channel]
   (proxy [StreamRDF] []
@@ -27,10 +27,10 @@
     (prefix [prefix iri] nil)
     (start [] nil)
     (triple [triple]
-      (println triple)
+      ;(println triple)
       (async/>!! channel triple))
     (quad [quad]
-      (println quad)
+      ;(println quad)
       (async/>!! channel quad))))
 
 (defn chan-seq!! [ch]
@@ -53,35 +53,38 @@
 (defn node-to-uristr [^Node node]
   (and (.isURI node) (.getURI node)))
 
-(defn triple-to-dict [triple]
-  { :subject (node-to-uristr (.getSubject triple))
-    :predicate (node-to-uristr (.getPredicate triple))
-    :object (node-to-uristr (.getObject triple))
-  })
+(defn triple->pair [triple]
+  [ (node-to-uristr (.getSubject triple))
+    (node-to-uristr (.getObject triple))
+  ] )
 
 (defn linkset [url predicate]
   (println "Downloading linkset" url)
   (println "Filtering for predicate" predicate)
   (let [transducer (comp
           (filter (partial has-predicate? predicate))
-          (map node-to-uristr))
+          (map triple->pair))
         triples (async/chan 10 transducer)]
       (async/thread
         (try
-          (RDFDataMgr/parse url (channel-rdfstream triples))
+          (RDFDataMgr/parse (channel-rdfstream triples) url)
         (finally
           (async/close! triples))))
       triples))
 
 (defn mapping-set [url]
-  (let [mapset (mapping-set-info url)]
-    (linkset
-      (:mappingSource mapset)
-      (:predicate mapset)
-  )))
-
+  (let [mapset (mapping-set-info url)
+        links (linkset
+                (:mappingSource mapset)
+                (:predicate mapset))
+        samples (async/chan 0)]
+      (pipeline 1 links (sample 1000 (:numberOfLinks mapset)) samples)
+      (chan-seq!! samples)))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
+  (let [transducer] (comp
+      ()
+      )
   (println "Hello, World!"))
