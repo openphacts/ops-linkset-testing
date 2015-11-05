@@ -78,13 +78,10 @@
                 (:mappingSource mapset)
                 (:predicate mapset))
         samples (async/chan 0)]
-      (pipeline 1 links (sample 1000 (:numberOfLinks mapset)) samples)
+      (async/pipeline 1 links (sample 1000 (:numberOfLinks mapset)) samples)
       (chan-seq!! samples)))
 
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (let [transducer] (comp
-      ()
-      )
   (println "Hello, World!"))
