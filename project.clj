@@ -6,9 +6,8 @@
   :dependencies [
                   [org.clojure/clojure "1.7.0"]
                   [org.clojure/core.async "0.2.371"]
-                 ;[cheshire "5.5.0"]
+                  [cheshire "5.5.0"]
                   [clj-http "2.0.0"]
-
                   [org.apache.jena/jena-arq "3.0.0"]
                 ]
   :main ^:skip-aot ops-linkset-testing.core

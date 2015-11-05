@@ -6,6 +6,7 @@
 
 (deftest mappingset
   (testing "url-to-json"
+    (println "Retrieving " MAPPINGSET)
     (let [set1 (url-to-json MAPPINGSET)]
       (println set1)
       (is (= 1 (get-in set1 [:MappingSetInfo :id])))))
@@ -13,5 +14,5 @@
       (is (= 1 (:id (mapping-set-info MAPPINGSET)))))
 
   (testing "mapping-set"
-    (is (< 100 (count (mapping-set MAPPINGSET)))))
+    (is (< 100 (count (chan-seq!! (mapping-set MAPPINGSET))))))
 )
