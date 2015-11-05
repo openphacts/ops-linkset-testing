@@ -10,6 +10,9 @@
     )
   (:gen-class))
 
+(def API_ID "161aeb7d")
+(def API_KEY "ec09282901cef4df3eb40db86adb1b9f")
+
 
 (defn url-to-json [url]
   (:body (client/get url {:accept :json :as :json})))
@@ -45,12 +48,16 @@
   "Convert a channel to a lazy sequence."
   { :author ["Timothy Baldridge", "amalloy", "Stian Soiland-Reyes"]
     :wasDerivedFrom "http://stackoverflow.com/a/26656917" }
-  ([ch] (lazy-seq
+  ([ch] (with-meta (lazy-seq
       (when-some [v (async/<!! ch)]
-        (cons v (chan-seq!! ch)))))
-  ([ch timeout] (lazy-seq
+        (cons v (chan-seq!! ch)))) {:channel ch} ))
+  ([ch timeout] (with-meta (lazy-seq
       (when-some [v (<timeout ch timeout)]
-        (cons v (chan-seq!! ch timeout))))))
+        (cons v (chan-seq!! ch timeout)))) {:channel ch :timeout timeout})))
+
+(defn to-chan [coll]
+  (or (:channel (meta coll))
+      (async/to-chan coll)))
 
 (defn sample
   "Return a transducer that randomly sample
@@ -92,7 +99,40 @@
       (async/pipe links samples)
       (chan-seq!! samples 2000)))
 
+(defn map-uri [ims uri]
+  (set (get-in (client/get (str ims "mapUri")
+      { :query-params { "Uri" uri }
+      :accept :json :as :json}))
+      [:body :Mapping :targetUri]))
+
+(defn ims-test [ims [src dst]]
+  (and
+    (contains? (map-uri ims src) dst)
+    (contains? (map-uri ims dst) src)
+  ))
+
+(defn test-mapping-set-ims [ims mapping-set-url]
+  (let [links (mapping-set (to-chan mapping-set-url))
+        failed (async/chan 10 (filter #(not (ims-test ims %))))]
+    (async/pipe links failed)
+    (chan-seq!! failed 2000)))
+
+(defn linkset-exists? [uri]
+  (client/success?  (client/head uri {  :accept :json :throw-exceptions false })))
+
+(defn all-mappingsets [ims max]
+  (async/filter< linkset-exists?
+    (async/to-chan (map (partial str ims "mappingSet/") (range max)))))
+
+(defn test-ims [ims ops]
+  (let [mappingsets (all-mappingsets ims 300)
+        errors (async/map #(to-chan (test-mapping-set-ims %)) mappingsets)]
+    (async/map println errors)))
+
 (defn -main
-  "I don't do a whole lot ... yet."
   [& args]
-  (println "Hello, World!"))
+  (if (< (count args) 2) (println
+"Usage: ops-linkset-testing [IMS] [OPS]
+Example
+  ops-linkset-testing http://openphacts.cs.man.ac.uk:9095/QueryExpander/ https://beta.openphacts.org/1.5/")
+    (test-ims (first args) (second args))))
