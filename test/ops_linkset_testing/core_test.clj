@@ -16,5 +16,5 @@
   (testing "mapping-set"
     (let [set1 (mapping-set MAPPINGSET)]
       (is (< 100 (count set1)))
-      (is (< 2000 (count set1)))
+      (is (< (count set1) 2000))
       (println (first set1)))))

@@ -33,13 +33,24 @@
       ;(println quad)
       (async/>!! channel quad))))
 
-(defn chan-seq!! [ch]
+(defn <timeout
+  "Like <!!, but with a timeout in milliseconds.
+
+  Return nil if timed out or the channel is closed.
+  Note that ch is not closed at timeout."
+  [ch timeout]
+  (first (async/alts!! [ch (async/timeout timeout)])))
+
+(defn chan-seq!!
   "Convert a channel to a lazy sequence."
   { :author ["Timothy Baldridge", "amalloy", "Stian Soiland-Reyes"]
     :wasDerivedFrom "http://stackoverflow.com/a/26656917" }
-  (lazy-seq
-    (when-some [v (async/<!! ch)]
-      (cons v (chan-seq!! ch)))))
+  ([ch] (lazy-seq
+      (when-some [v (async/<!! ch)]
+        (cons v (chan-seq!! ch)))))
+  ([ch timeout] (lazy-seq
+      (when-some [v (<timeout ch timeout)]
+        (cons v (chan-seq!! ch timeout))))))
 
 (defn sample
   "Return a transducer that randomly sample
@@ -77,9 +88,9 @@
         links (linkset
                 (:mappingSource mapset)
                 (:predicate mapset))
-        samples (async/chan 0)]
-      (async/pipeline 1 links (sample 1000 (:numberOfLinks mapset)) samples)
-      (chan-seq!! samples)))
+        samples (async/chan 10 (sample 1000 (:numberOfLinks mapset)))]
+      (async/pipe links samples)
+      (chan-seq!! samples 2000)))
 
 (defn -main
   "I don't do a whole lot ... yet."
